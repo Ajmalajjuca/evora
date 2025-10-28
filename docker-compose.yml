@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  client:
+    container_name: conekt-lab-client
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:5000
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - conekt-lab-network
+
+  server:
+    container_name: conekt-lab-server
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongo:27017/conekt-lab
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+    networks:
+      - conekt-lab-network
+
+  mongo:
+    container_name: conekt-lab-mongo
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=conekt-lab
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - conekt-lab-network
+
+networks:
+  conekt-lab-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
