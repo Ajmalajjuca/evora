@@ -1,5 +1,4 @@
-const express = require('express');
-const router = express.Router();
+import express, { Router } from 'express';
 import {
   getUsers,
   getUser,
@@ -9,17 +8,19 @@ import {
 } from '../controllers/userController';
 import { protect, authorize } from '../middleware/auth';
 
+const router: Router = express.Router();
+
+// Apply authentication middleware to all routes
 router.use(protect);
 
-router
-  .route('/')
+// Routes
+router.route('/')
   .get(getUsers)
   .post(authorize('admin'), createUser);
 
-router
-  .route('/:id')
+router.route('/:id')
   .get(getUser)
   .put(updateUser)
   .delete(authorize('admin'), deleteUser);
 
-module.exports = router;
+export default router;

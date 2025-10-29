@@ -1,13 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const authRoutes = require('./auth');
-const userRoutes = require('./users');
+import express, { Request, Response } from 'express';
 
+
+const router = express.Router();
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 
-router.get('/', (req, res) => {
+router.get('/', (req: Request, res: Response) => {
   res.json({
     message: 'Welcome to conekt-lab API',
     version: '1.0.0',
@@ -19,4 +18,4 @@ router.get('/', (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;
