@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { config } from '../config/config.js';
 
 /**
  * Check if database is connected
@@ -28,7 +29,7 @@ export const closeConnection = async (): Promise<void> => {
  * Clear all collections in the database (useful for testing)
  */
 export const clearDatabase = async (): Promise<void> => {
-  if (process.env.NODE_ENV === 'test') {
+  if (config.nodeEnv === 'test') {
     const collections = mongoose.connection.collections;
     for (const key in collections) {
       if (Object.prototype.hasOwnProperty.call(collections, key)) {

@@ -1,21 +1,11 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, Router } from 'express';
+import authRoutes from './auth.js';
+import userRoutes from './users.js';
 
-
-const router = express.Router();
+const router: Router = express.Router();
 
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 
-router.get('/', (req: Request, res: Response) => {
-  res.json({
-    message: 'Welcome to conekt-lab API',
-    version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      users: '/api/users',
-      health: '/health'
-    }
-  });
-});
 
 export default router;

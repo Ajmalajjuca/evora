@@ -7,6 +7,7 @@ import routes from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { notFound } from './middleware/notFound.js';
 import { connectDB } from './config/database.js';
+import { config } from './config/config.js';
 
 dotenv.config();
 
@@ -21,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: config.cors_origin || 'http://localhost:3000',
     credentials: true,
   })
 );

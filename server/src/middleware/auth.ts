@@ -3,6 +3,7 @@ import { AppError } from "../utils/AppError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { Request, Response, NextFunction } from "express";
 import User from "../models/User.js";
+import { config } from "../config/config.js";
 
 interface AuthRequest extends Request {
   user?: any;
@@ -20,7 +21,7 @@ export const protect = catchAsync(async (req: AuthRequest, res: Response, next: 
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const decoded = jwt.verify(token, config.jwt.secret!) as JwtPayload;
 
     const user = await User.findById(decoded.id);
     if (!user) {

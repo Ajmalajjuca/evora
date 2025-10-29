@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError.js";
+import { config } from "../config/config.js";
 
 export const errorHandler = (
   err: any,
@@ -10,7 +11,7 @@ export const errorHandler = (
   let error = { ...err };
   error.message = err.message;
 
-  if (process.env.NODE_ENV === "development") {
+  if (config.nodeEnv === "development") {
     console.error("Error 💥", err);
   }
 
@@ -46,6 +47,6 @@ export const errorHandler = (
   res.status(error.statusCode || 500).json({
     success: false,
     error: error.message || "Server Error",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+    ...(config.nodeEnv === "development" && { stack: err.stack }),
   });
 };

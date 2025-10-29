@@ -4,34 +4,57 @@ import { catchAsync } from "../utils/catchAsync.js";
 import { UserService } from "../services/userService.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 
+const userService = new UserService();
 
-const userService = new UserService()
-// GET all users
-export const getUsers = catchAsync(async (req: Request, res: Response) => {
+/**
+ * @desc Get all users
+ * @route GET /api/users
+ * @access Protected (Admin)
+ */
+export const getUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const users = await userService.getAllUsers();
-  ApiResponse.success(res, users, "Users fetched successfully");
+  return ApiResponse.success(res, users, "Users fetched successfully");
 });
 
-// GET single user
-export const getUser = catchAsync(async (req: Request, res: Response) => {
+/**
+ * @desc Get single user by ID
+ * @route GET /api/users/:id
+ * @access Protected
+ */
+export const getUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const user = await userService.getUserById(req.params.id);
-  ApiResponse.success(res, user, "User fetched successfully");
+  if (!user) return ApiResponse.error(res, "User not found", 404);
+  return ApiResponse.success(res, user, "User fetched successfully");
 });
 
-// CREATE user
-export const createUser = catchAsync(async (req: Request, res: Response) => {
+/**
+ * @desc Create a new user
+ * @route POST /api/users
+ * @access Admin
+ */
+export const createUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const user = await userService.createUser(req.body);
-  ApiResponse.success(res, user, "User created successfully", 201);
+  return ApiResponse.success(res, user, "User created successfully", 201);
 });
 
-// UPDATE user
-export const updateUser = catchAsync(async (req: Request, res: Response) => {
+/**
+ * @desc Update an existing user
+ * @route PUT /api/users/:id
+ * @access Protected
+ */
+export const updateUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const user = await userService.updateUser(req.params.id, req.body);
-  ApiResponse.success(res, user, "User updated successfully");
+  if (!user) return ApiResponse.error(res, "User not found", 404);
+  return ApiResponse.success(res, user, "User updated successfully");
 });
 
-// DELETE user
-export const deleteUser = catchAsync(async (req: Request, res: Response) => {
-  await userService.deleteUser(req.params.id);
-  ApiResponse.success(res, null, "User deleted successfully", 204);
+/**
+ * @desc Delete user by ID
+ * @route DELETE /api/users/:id
+ * @access Admin
+ */
+export const deleteUser = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const deleted = await userService.deleteUser(req.params.id);
+  if (!deleted) return ApiResponse.error(res, "User not found", 404);
+  return ApiResponse.success(res, null, "User deleted successfully", 204);
 });

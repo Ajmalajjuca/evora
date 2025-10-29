@@ -1,19 +1,31 @@
 import { Request, Response, NextFunction } from "express";
-import { AuthService } from "../services/authService";
-import { catchAsync } from "../utils/catchAsync";
+import { AuthService } from "../services/authService.js";
+import { catchAsync } from "../utils/catchAsync.js";
+import { ApiResponse } from "../utils/apiResponse.js";
 
 const authService = new AuthService();
 
-export const register = catchAsync(async (req: Request, res: Response) => {
+/**
+ * @desc Register a new user
+ * @route POST /api/auth/register
+ * @access Public
+ */
+export const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const { name, email, password } = req.body;
+  if (!name || !email || !password) return ApiResponse.error(res, "Name, email, and password are required", 400);
   const { user, token } = await authService.register(name, email, password);
-  res.status(201).json({ success: true, user, token });
+  return ApiResponse.success(res, { user, token }, "User registered successfully", 201);
 });
 
-export const login = catchAsync(async (req: Request, res: Response) => {
+
+/**
+ * @desc Login user
+ * @route POST /api/auth/login
+ * @access Public
+ */
+export const login = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
+  if (!email || !password) return ApiResponse.error(res, "Email and password are required", 400);
   const { user, token } = await authService.login(email, password);
-  res.status(200).json({ success: true, user, token });
+  return ApiResponse.success(res, { user, token }, "User logged in successfully", 200);
 });
-
-

@@ -2,10 +2,6 @@ import User from "../models/User.js";
 import { IUser } from "../types/user.js";
 
 export class UserRepository {
-  async create(userData: Partial<IUser>): Promise<IUser> {
-    return await User.create(userData);
-  }
-
   async findByEmail(email: string): Promise<IUser | null> {
     return await User.findOne({ email }).select("+password");
   }
@@ -16,6 +12,10 @@ export class UserRepository {
 
   async findAll(): Promise<IUser[]> {
     return await User.find();
+  }
+
+  async create(userData: Partial<IUser>): Promise<IUser> {
+    return await User.create(userData);
   }
 
   async update(id: string, data: Partial<IUser>): Promise<IUser | null> {
@@ -29,3 +29,5 @@ export class UserRepository {
     return await User.findByIdAndDelete(id);
   }
 }
+
+
