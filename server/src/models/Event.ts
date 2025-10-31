@@ -1,81 +1,60 @@
-import mongoose, { Document, Schema } from 'mongoose';
-import { IEvent } from '../types/event.js';
+import mongoose from "mongoose";
 
-export interface IEventDocument extends IEvent, Document {}
-
-const eventSchema = new Schema<IEventDocument>(
+const eventSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, 'Event title is required'],
+      required: true,
       trim: true,
-      maxlength: [100, 'Event title cannot exceed 100 characters']
     },
-    description: {
+    date: {
       type: String,
-      required: [true, 'Event description is required'],
-      maxlength: [2000, 'Description too long']
+      required: true,
+    },
+    time: {
+      type: String,
+      required: true,
+    },
+    duration: {
+      type: String,
+    },
+    location: {
+      type: String,
+      required: true,
+    },
+    image: {
+      type: String,
+      default: "",
+    },
+    attendees: {
+      type: Number,
+      default: 0,
     },
     category: {
       type: String,
-      required: true,
-      trim: true
+      enum: [
+        "Technology",
+        "Business",
+        "Education",
+        "Entertainment",
+        "Health",
+        "Sports",
+        "Other",
+      ],
+      default: "Other",
     },
-    location: {
-      address: { type: String, required: true },
-      city: { type: String, required: true },
-      state: String,
-      country: { type: String, required: true },
-      lat: Number,
-      lng: Number
-    },
-    startDate: {
-      type: Date,
-      required: [true, 'Start date is required']
-    },
-    endDate: {
-      type: Date,
-      required: [true, 'End date is required']
-    },
-    image: {
-      type: String
-    },
-    capacity: {
+    rating: {
       type: Number,
-      default: 0
+      min: 0,
+      max: 5,
+      default: 0,
     },
-    attendees: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: 'User'
-      }
-    ],
-    price: {
-      type: Number,
-      default: 0
-    },
-    isOnline: {
-      type: Boolean,
-      default: false
-    },
-    status: {
+    description: {
       type: String,
-      enum: ['draft', 'published', 'cancelled', 'completed'],
-      default: 'draft'
-    }
+      trim: true,
+    },
   },
-  {
-    timestamps: true
-  }
+  { timestamps: true }
 );
 
-// Index for faster search/filter
-eventSchema.index({ title: 'text', category: 1, startDate: -1 });
-
-// Virtual property for attendee count
-eventSchema.virtual('attendeeCount').get(function (this: IEventDocument) {
-  return this.attendees?.length || 0;
-});
-
-const Event = mongoose.model<IEventDocument>('Event', eventSchema);
-export default Event;
+export const Event = mongoose.model("Event", eventSchema);

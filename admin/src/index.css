@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* -------------------------------------------------
+   Tailwind v4 – design tokens (no config file!)
+   ------------------------------------------------- */
+@layer base {
+  :root {
+    /* Light mode */
+    --bg: #f8fafc;          /* slate-50 */
+    --card: #ffffff;
+    --border: #e2e8f0;      /* slate-200 */
+    --text: #1e293b;        /* slate-800 */
+    --text-light: #64748b;  /* slate-500 */
+    --primary: #3b82f6;     /* blue-500 */
+    --primary-hover: #2563eb;
+    --danger: #ef4444;
+  }
+
+  .dark {
+    --bg: #0f172a;          /* slate-950 */
+    --card: #1e293b;        /* slate-800 */
+    --border: #334155;      /* slate-700 */
+    --text: #e2e8f0;         /* slate-200 */
+    --text-light: #94a3b8;  /* slate-400 */
+    --primary: #60a5fa;     /* blue-400 */
+    --primary-hover: #3b82f6;
+    --danger: #f87171;
+  }
+}
+
+/* -------------------------------------------------
+   Re-usable component classes
+   ------------------------------------------------- */
+@layer components {
+  .card {
+    @apply bg-[var(--card)] border border-[var(--border)] rounded-xl shadow-sm p-5;
+  }
+
+  .btn-primary {
+    @apply bg-[var(--primary)] text-white px-4 py-2.5 rounded-lg font-medium transition hover:bg-[var(--primary-hover)];
+  }
+
+  .btn-danger {
+    @apply bg-[var(--danger)] text-white px-3 py-1.5 rounded-lg text-sm transition hover:bg-red-600;
+  }
+
+  .input {
+    @apply w-full px-4 py-2.5 border border-[var(--border)] rounded-lg bg-white text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)];
+  }
+}
+
+/* Full height page */
+html, body, #root { height: 100%; }
