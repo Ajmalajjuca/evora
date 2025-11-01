@@ -12,10 +12,8 @@ export const bookEvent = catchAsync(async (req: Request, res: Response, next: Ne
 });
 
 export const getBooking = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const event = await bookingService.getBookingById(req.user.id);
+  const event = await bookingService.getBookingById((req as any).user.id);
   console.log('event:',event);
-
-
   if (!event) return ApiResponse.error(res, "Event not found", 404);
   return ApiResponse.success(res, event, "Event fetched successfully");
 });
