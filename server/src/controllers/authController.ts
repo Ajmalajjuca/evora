@@ -5,15 +5,17 @@ import { ApiResponse } from "../utils/apiResponse.js";
 
 const authService = new AuthService();
 
+
+
 /**
  * @desc Register a new user
  * @route POST /api/auth/register
  * @access Public
  */
 export const register = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, phone, } = req.body;
   if (!name || !email || !password) return ApiResponse.error(res, "Name, email, and password are required", 400);
-  const { user, token } = await authService.register(name, email, password);
+  const { user, token } = await authService.register(name, email, password, phone);
   return ApiResponse.success(res, { user, token }, "User registered successfully", 201);
 });
 
@@ -27,5 +29,12 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
   const { email, password } = req.body;
   if (!email || !password) return ApiResponse.error(res, "Email and password are required", 400);
   const { user, token } = await authService.login(email, password);
+  return ApiResponse.success(res, { user, token }, "User logged in successfully", 200);
+});
+
+export const adminLogin = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+  if (!email || !password) return ApiResponse.error(res, "Email and password are required", 400);
+  const { user, token } = await authService.adminLogin(email, password);
   return ApiResponse.success(res, { user, token }, "User logged in successfully", 200);
 });

@@ -11,10 +11,13 @@ interface AuthRequest extends Request {
 
 export const protect = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
   let token: string | undefined;
+console.log("Authorization Header:", req.headers.authorization);
 
   if (req.headers.authorization?.startsWith("Bearer")) {
-    token = req.headers.authorization.split(" ")[1];
+    token = req.headers.authorization.split(" ")[1].replace(/"/g, "");
   }
+
+  console.log("Token:", token);
 
   if (!token) {
     return next(new AppError("Not authorized to access this route", 401));
@@ -22,8 +25,9 @@ export const protect = catchAsync(async (req: AuthRequest, res: Response, next: 
 
   try {
     const decoded = jwt.verify(token, config.jwt.secret!) as JwtPayload;
+    console.log('decoded:',decoded);
 
-    const user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.userId);
     if (!user) {
       return next(new AppError("User no longer exists", 401));
     }

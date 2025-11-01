@@ -7,9 +7,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
 
   const menuItems = [
-    { icon: BarChart3, label: 'Dashboard', path: '/dashboard', badge: null },
-    { icon: Calendar, label: 'Events', path: '/events', badge: '12' },
-    { icon: Users, label: 'Users', path: '/users', badge: '48' }
+    { icon: BarChart3, label: 'Dashboard', path: '/dashboard' },
+    { icon: Calendar, label: 'Events', path: '/events', },
+    { icon: Users, label: 'Users', path: '/users',}
   ];
 
   const handleNavigation = (path) => {
@@ -40,7 +40,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               <Shield className="w-6 h-6 text-black" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">EventAdmin</h1>
+              <h1 className="text-xl font-bold text-white">Evora Admin</h1>
               <div className="flex items-center gap-1 mt-0.5">
                 <Activity className="w-3 h-3 text-emerald-400 animate-pulse" />
                 <span className="text-xs text-zinc-400">Online</span>
@@ -78,15 +78,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   }`} />
                   <span className="font-medium">{item.label}</span>
                 </div>
-                {item.badge && (
-                  <span className={`px-2 py-0.5 text-xs font-semibold rounded-lg ${
-                    isActive
-                      ? 'bg-black/10 text-black'
-                      : 'bg-white/10 text-zinc-400 group-hover:bg-white/20 group-hover:text-white'
-                  }`}>
-                    {item.badge}
-                  </span>
-                )}
+
               </button>
             );
           })}

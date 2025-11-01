@@ -15,7 +15,10 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    duration: {
+    hours: {
+      type: String,
+    },
+    minutes: {
       type: String,
     },
     location: {
@@ -30,28 +33,13 @@ const eventSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    category: {
-      type: String,
-      enum: [
-        "Technology",
-        "Business",
-        "Education",
-        "Entertainment",
-        "Health",
-        "Sports",
-        "Other",
-      ],
-      default: "Other",
-    },
-    rating: {
-      type: Number,
-      min: 0,
-      max: 5,
-      default: 0,
-    },
     description: {
       type: String,
       trim: true,
+    },
+    price: {
+      type: String,
+      default: "0",
     },
   },
   { timestamps: true }

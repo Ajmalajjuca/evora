@@ -1,15 +1,15 @@
 export interface IEvent {
-  _id?: string;
+  _id: string | Types.ObjectId;
   title: string;
   date: string;
   time: string;
-  duration?: string;
+  hours?: string | null;
+  minutes?: string | null;
   location: string;
-  image?: string;
+  image?: string | null;
   attendees?: number;
-  category?: string;
-  rating?: number;
-  description?: string;
+  description?: string | null;
+  price?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
 }

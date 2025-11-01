@@ -9,13 +9,11 @@ export class AuthService {
   /**
    * @desc Register a new user
    */
-  async register(name: string, email: string, password: string) {
+  async register(name: string, email: string, password: string, phone: string) {
     const existingUser = await userRepo.findByEmail(email);
     if (existingUser) throw new AppError("User already exists", 400);
 
-    // Hash password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await userRepo.create({ name, email, password: hashedPassword });
+    const user = await userRepo.create({ name, email, password, phone });
 
     const token = generateToken(user);
 
@@ -31,6 +29,21 @@ export class AuthService {
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) throw new AppError("Invalid email or password", 401);
+
+    const token = generateToken(user);
+
+    return { user, token };
+  }
+
+  async adminLogin(email: string, password: string) {
+    const user = await userRepo.findByEmail(email);
+    if (!user) throw new AppError("Invalid email", 401);
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) throw new AppError("Invalid email or password", 401);
+
+    if (user.role !== "admin") throw new AppError("Unauthorized", 401);
 
     const token = generateToken(user);
 

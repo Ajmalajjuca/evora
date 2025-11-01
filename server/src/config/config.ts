@@ -7,7 +7,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 export const config = {
   port: process.env.PORT || 5000,
 
-  cors_origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  cors_origin: process.env.CORS_ORIGIN || "http://localhost:5173",
 
   jwt: {
     secret: process.env.JWT_SECRET || "default_secret_key",

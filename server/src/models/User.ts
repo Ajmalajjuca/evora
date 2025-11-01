@@ -16,9 +16,11 @@ const userSchema = new Schema<IUserDocument>(
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, 'Please provide a valid email']
     },
+    phone: { type: String, required: true, unique: true },
     password: { type: String, required: true, minlength: 6, select: false },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     avatar: { type: String, default: '' },
+    isBlocked: { type: Boolean, default: false },
     resetPasswordToken: String,
     resetPasswordExpire: Date
   },

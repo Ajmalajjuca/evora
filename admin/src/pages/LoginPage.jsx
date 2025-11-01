@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Shield } from 'lucide-react';
+import { login } from '../Service/adminService';
 
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
@@ -13,14 +14,24 @@ const LoginPage = ({ onLogin }) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+    try {
+      const res = await login(email, password);
+      console.log('login response:',res);
+      if(res.success){
+        onLogin();
+        localStorage.setItem('admin', JSON.stringify(res.data.user));
+        localStorage.setItem('accessToken', JSON.stringify(res.data.token));
+        setIsLoading(false);
+      }
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (email === 'admin@example.com' && password === 'admin123') {
       onLogin();
-    } else {
-      setError('Invalid credentials. Please try again.');
       setIsLoading(false);
+    } catch (error) {
+      console.log('Error:',error);
+
+      setError(error.response.data.message || error.response.data.error || 'Something went wrong');
+      setIsLoading(false);
+
     }
   };
 
@@ -109,17 +120,6 @@ const LoginPage = ({ onLogin }) => {
               </div>
             </div>
 
-            {/* Remember me */}
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center space-x-2 cursor-pointer group">
-                <input type="checkbox" className="w-4 h-4 bg-zinc-800 border-zinc-700 rounded focus:ring-0 focus:ring-offset-0 text-white" />
-                <span className="text-zinc-400 group-hover:text-white transition-colors">Remember me</span>
-              </label>
-              <button className="text-zinc-400 hover:text-white transition-colors">
-                Forgot password?
-              </button>
-            </div>
-
             {/* Error message */}
             {error && (
               <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm py-3 px-4 rounded-xl animate-shake backdrop-blur-sm">
@@ -151,30 +151,7 @@ const LoginPage = ({ onLogin }) => {
             </button>
           </div>
 
-          {/* Divider */}
-          <div className="flex items-center my-6">
-            <div className="flex-1 h-px bg-zinc-800"></div>
-            <span className="px-4 text-zinc-500 text-xs">DEMO ACCESS</span>
-            <div className="flex-1 h-px bg-zinc-800"></div>
-          </div>
 
-          {/* Demo credentials */}
-          <div className="p-4 bg-zinc-800/30 rounded-xl border border-zinc-800 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-zinc-400 text-xs font-medium">Test Credentials</p>
-              <span className="px-2 py-1 bg-zinc-700/50 text-zinc-300 text-xs rounded-md">Active</span>
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="w-4 h-4 text-zinc-500" />
-                <code className="text-zinc-300 font-mono text-xs">admin@example.com</code>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Lock className="w-4 h-4 text-zinc-500" />
-                <code className="text-zinc-300 font-mono text-xs">admin123</code>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

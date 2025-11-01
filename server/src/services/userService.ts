@@ -20,9 +20,11 @@ export class UserService {
   }
 
   async createUser(data: Partial<IUser>): Promise<IUser> {
-    if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
-    }
+    console.log('data:',data);
+
+    const existingUser = await userRepository.findByEmail(data.email!);
+    if (existingUser) throw new AppError("User already exists", 400);
+
     const user = await userRepository.create(data);
     return user;
   }

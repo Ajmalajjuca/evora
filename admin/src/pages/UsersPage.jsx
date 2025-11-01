@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, X, User, Mail, Shield, Calendar, Trophy, Search, Filter, Edit, Trash2, MoreVertical } from 'lucide-react';
+import { Plus, X, User, Mail, Shield, Calendar, Trophy, Search, Filter, Edit, Trash2, MoreVertical, Phone, Lock, PhoneCall, Blocks, OctagonX } from 'lucide-react';
+import { createUser, deleteUser, updateUser } from '../Service/userService';
 
 // User Table Component
-const UserTable = ({ users, onEdit, onDelete }) => {
+const UserTable = ({ users, onEdit, onDelete, setUsers }) => {
   const [hoveredRow, setHoveredRow] = useState(null);
 
   return (
@@ -13,7 +14,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
         <div className="text-zinc-400 text-sm font-medium">Email</div>
         <div className="text-zinc-400 text-sm font-medium">Role</div>
         <div className="text-zinc-400 text-sm font-medium">Joined</div>
-        <div className="text-zinc-400 text-sm font-medium">Events</div>
+        <div className="text-zinc-400 text-sm font-medium">Active</div>
         <div className="text-zinc-400 text-sm font-medium text-right">Actions</div>
       </div>
 
@@ -21,7 +22,7 @@ const UserTable = ({ users, onEdit, onDelete }) => {
       <div className="divide-y divide-zinc-800">
         {users.map((user) => (
           <div
-            key={user.id}
+            key={user._id}
             onMouseEnter={() => setHoveredRow(user.id)}
             onMouseLeave={() => setHoveredRow(null)}
             className="grid grid-cols-6 gap-4 px-6 py-4 hover:bg-white/5 transition-colors group"
@@ -42,38 +43,49 @@ const UserTable = ({ users, onEdit, onDelete }) => {
             {/* Role */}
             <div className="flex items-center">
               <span className={`px-3 py-1 rounded-lg text-xs font-medium ${
-                user.role === 'Admin'
+                user.role === 'admin'
                   ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
                   : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
               }`}>
-                {user.role}
+                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
               </span>
             </div>
 
             {/* Joined */}
             <div className="flex items-center">
-              <span className="text-zinc-400 text-sm">{user.joined}</span>
+              <span className="text-zinc-400 text-sm">{new Date(user.createdAt).toLocaleDateString("us-US",{
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+              })}</span>
             </div>
 
             {/* Events Attended */}
             <div className="flex items-center">
-              <div className="flex items-center gap-2 px-2 py-1 bg-white/5 rounded-lg border border-white/10">
-                <Trophy className="w-4 h-4 text-yellow-400" />
-                <span className="text-white text-sm font-medium">{user.eventsAttended}</span>
-              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          checked={!user.isBlocked}
+          onChange={() => updateUser(user._id, { isBlocked: !user.isBlocked }).then(() => {
+            setUsers((prevUsers) => prevUsers.map((u) => (u._id === user._id ? { ...u, isBlocked: !u.isBlocked } : u)));
+          })}
+          className="sr-only peer"
+        />
+        <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:bg-yellow-500/20 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+      </label>
             </div>
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-2">
               <button
                 onClick={() => onEdit(user)}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors group-hover:opacity-100"
               >
                 <Edit className="w-4 h-4 text-zinc-400 hover:text-white" />
               </button>
               <button
-                onClick={() => onDelete(user.id)}
-                className="p-2 hover:bg-red-500/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                onClick={() => onDelete(user._id)}
+                className="p-2 hover:bg-red-500/10 rounded-lg transition-colors group-hover:opacity-100"
               >
                 <Trash2 className="w-4 h-4 text-zinc-400 hover:text-red-400" />
               </button>
@@ -100,21 +112,13 @@ const UsersPage = ({ users = [], setUsers }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    role: 'User',
-    joined: '',
-    eventsAttended: ''
+    phone: '',
+    role: 'user',
+    password: '',
   });
 
-  // Mock users if none provided
-  const mockUsers = users.length > 0 ? users : [
-    { id: '1', name: 'John Doe', email: 'john@example.com', role: 'Admin', joined: 'Jan 2024', eventsAttended: 12 },
-    { id: '2', name: 'Sarah Smith', email: 'sarah@example.com', role: 'User', joined: 'Feb 2024', eventsAttended: 8 },
-    { id: '3', name: 'Mike Johnson', email: 'mike@example.com', role: 'User', joined: 'Mar 2024', eventsAttended: 15 },
-    { id: '4', name: 'Emily Davis', email: 'emily@example.com', role: 'Admin', joined: 'Jan 2024', eventsAttended: 20 },
-    { id: '5', name: 'Chris Wilson', email: 'chris@example.com', role: 'User', joined: 'Apr 2024', eventsAttended: 5 }
-  ];
 
-  const displayUsers = users.length > 0 ? users : mockUsers;
+  const displayUsers = users
 
   const handleEdit = (user) => {
     setEditingUser(user);
@@ -125,23 +129,30 @@ const UsersPage = ({ users = [], setUsers }) => {
   const handleDelete = (id) => {
     if (confirm('Are you sure you want to delete this user?')) {
       if (setUsers) {
-        setUsers(displayUsers.filter(u => u.id !== id));
+        deleteUser(id);
+        setUsers(displayUsers.filter(u => u._id !== id));
       }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     if (setUsers) {
       if (editingUser) {
-        setUsers(displayUsers.map(u => u.id === editingUser.id ? { ...formData, id: u.id } : u));
+        const res = await updateUser(editingUser._id, formData);
+        setUsers(displayUsers.map(u => u._id === editingUser._id ? res.data : u));
       } else {
-        setUsers([...displayUsers, { ...formData, id: Date.now().toString() }]);
+        try {
+          const res = await createUser(formData);
+          setUsers([...displayUsers, res.data]);
+        } catch (error) {
+          console.error('Error creating user:', error);
+        }
       }
     }
     setIsModalOpen(false);
     setEditingUser(null);
-    setFormData({ name: '', email: '', role: 'User', joined: '', eventsAttended: '' });
+    setFormData({ name: '', email: '', role: 'user', phone: '', password: '' });
   };
 
   const filteredUsers = displayUsers.filter(user =>
@@ -152,8 +163,8 @@ const UsersPage = ({ users = [], setUsers }) => {
 
   // Calculate stats
   const totalUsers = displayUsers.length;
-  const adminCount = displayUsers.filter(u => u.role === 'Admin').length;
-  const totalEvents = displayUsers.reduce((sum, u) => sum + u.eventsAttended, 0);
+  const adminCount = displayUsers.filter(u => u.role === 'admin').length;
+const totalBlockedUser = displayUsers.reduce((sum, u) => sum + (u.isBlocked ? 1 : 0), 0);
 
   return (
     <div className="min-h-screen bg-black p-6 relative overflow-hidden">
@@ -179,7 +190,7 @@ const UsersPage = ({ users = [], setUsers }) => {
           <button
             onClick={() => {
               setEditingUser(null);
-              setFormData({ name: '', email: '', role: 'User', joined: '', eventsAttended: '' });
+              setFormData({ name: '', email: '', role: 'user', phone: '', password: '' });
               setIsModalOpen(true);
             }}
             className="flex items-center gap-2 px-6 py-3 bg-white text-black rounded-xl font-semibold hover:bg-zinc-100 transition-all transform hover:scale-105 active:scale-95 shadow-lg"
@@ -217,12 +228,12 @@ const UsersPage = ({ users = [], setUsers }) => {
 
           <div className="bg-zinc-900/50 backdrop-blur-xl rounded-2xl p-6 border border-zinc-800">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-yellow-500/10 rounded-xl border border-yellow-500/20">
-                <Trophy className="w-6 h-6 text-yellow-400" />
+              <div className="p-3 bg-red-500/10 rounded-xl border border-red-500/20">
+                <OctagonX className="w-6 h-6 text-red-400" />
               </div>
               <div>
-                <p className="text-zinc-400 text-sm">Total Attendance</p>
-                <p className="text-2xl font-bold text-white">{totalEvents}</p>
+                <p className="text-zinc-400 text-sm">Total Blocked Users</p>
+                <p className="text-2xl font-bold text-white">{totalBlockedUser}</p>
               </div>
             </div>
           </div>
@@ -240,14 +251,11 @@ const UsersPage = ({ users = [], setUsers }) => {
               className="w-full pl-12 pr-4 py-3 bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-all"
             />
           </div>
-          <button className="px-6 py-3 bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 rounded-xl text-white hover:bg-zinc-800 transition-all flex items-center gap-2">
-            <Filter className="w-5 h-5" />
-            Filter
-          </button>
+
         </div>
 
         {/* User Table */}
-        <UserTable users={filteredUsers} onEdit={handleEdit} onDelete={handleDelete} />
+        <UserTable users={filteredUsers} onEdit={handleEdit} onDelete={handleDelete} setUsers={setUsers} />
       </div>
 
       {/* Modal */}
@@ -302,6 +310,21 @@ const UsersPage = ({ users = [], setUsers }) => {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-zinc-300 text-sm font-medium">
+                    <PhoneCall className="w-4 h-4" />
+                    Phone
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="Enter phone number"
+                    value={formData.phone}
+                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                    className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition-all"
+                    required
+                  />
+                </div>
+
                 {/* Role */}
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-zinc-300 text-sm font-medium">
@@ -314,38 +337,22 @@ const UsersPage = ({ users = [], setUsers }) => {
                     className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-xl text-white focus:outline-none focus:border-zinc-600 transition-all appearance-none cursor-pointer"
                     required
                   >
-                    <option value="User">User</option>
-                    <option value="Admin">Admin</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
                   </select>
                 </div>
 
                 {/* Joined */}
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-zinc-300 text-sm font-medium">
-                    <Calendar className="w-4 h-4" />
-                    Joined Date
+                    <Lock className="w-4 h-4" />
+                    password
                   </label>
                   <input
-                    type="text"
-                    placeholder="e.g., Jan 2024"
-                    value={formData.joined}
-                    onChange={e => setFormData({...formData, joined: e.target.value})}
-                    className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition-all"
-                    required
-                  />
-                </div>
-
-                {/* Events Attended */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-zinc-300 text-sm font-medium">
-                    <Trophy className="w-4 h-4" />
-                    Events Attended
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={formData.eventsAttended}
-                    onChange={e => setFormData({...formData, eventsAttended: parseInt(e.target.value) || ''})}
+                    type="password"
+                    placeholder="Enter password"
+                    value={formData.password}
+                    onChange={e => setFormData({...formData, password: e.target.value})}
                     className="w-full px-4 py-3 bg-zinc-800/50 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition-all"
                     required
                   />
