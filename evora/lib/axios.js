@@ -2,7 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const API = axios.create({
-  baseURL: "http://192.168.1.40:5000/api", // ⚠️ replace with your backend IP
+  baseURL: "https://evora-r13i.onrender.com/api", // ⚠️ replace with your backend IP
   timeout: 10000,
 });
 
