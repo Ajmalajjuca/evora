@@ -11,19 +11,15 @@ import {
 
 const router: Router = express.Router();
 
-// Apply authentication middleware to all routes
-router.use(protect);
+// ✅ Public routes (no authentication)
+router.get("/", getEvents);
+router.get("/:id", getEvent);
 
-// Routes
-router
-  .route("/")
-  .get(getEvents)
-  .post(authorize("admin"), createEvent);
+// ✅ Protected admin routes
+router.post("/", protect, authorize("admin"), createEvent);
+router.put("/:id", protect, authorize("admin"), updateEvent);
+router.delete("/:id", protect, authorize("admin"), deleteEvent);
 
-router
-  .route("/:id")
-  .get(getEvent)
-  .put(authorize("admin"), updateEvent)
-  .delete(authorize("admin"), deleteEvent);
+
 
 export default router;

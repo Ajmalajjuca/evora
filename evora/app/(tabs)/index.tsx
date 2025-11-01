@@ -5,72 +5,65 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
+  RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-
-const categories = ["All", "Technology", "Music", "Art", "Sports", "Food"];
-
-const events = [
-  {
-    id: "1",
-    title: "Tech Summit 2025",
-    date: "Nov 15, 2025",
-    time: "10:00 AM",
-    duration: "2h 30m",
-    location: "Convention Center",
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800",
-    attendees: 250,
-    category: "Technology",
-    rating: 4.8,
-    description: "The premier technology conference bringing together innovators and thought leaders.",
-  },
-  {
-    id: "2",
-    title: "Music Festival",
-    date: "Dec 1, 2025",
-    time: "6:00 PM",
-    duration: "5h",
-    location: "Central Park",
-    image: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800",
-    attendees: 1500,
-    category: "Music",
-    rating: 4.9,
-    description: "An unforgettable evening of live music featuring top artists from around the world.",
-  },
-  {
-    id: "3",
-    title: "Art Exhibition",
-    date: "Nov 20, 2025",
-    time: "2:00 PM",
-    duration: "3h",
-    location: "Modern Art Gallery",
-    image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800",
-    attendees: 180,
-    category: "Art",
-    rating: 4.7,
-    description: "Explore contemporary masterpieces from renowned artists in an immersive gallery experience.",
-  },
-  {
-    id: "4",
-    title: "Food Carnival",
-    date: "Nov 25, 2025",
-    time: "12:00 PM",
-    duration: "6h",
-    location: "Downtown Square",
-    image: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800",
-    attendees: 500,
-    category: "Food",
-    rating: 4.6,
-    description: "A culinary adventure featuring gourmet food trucks and local delicacies.",
-  },
-];
+import { getAllEvents } from "../../lib/eventService";
+import { IEvent } from "@/lib/types/event";
 
 export default function HomeScreen() {
-  const [activeCategory, setActiveCategory] = useState(0);
   const router = useRouter();
+  const [events, setEvents] = useState<IEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchEvents = async (isRefresh = false) => {
+    try {
+      if (!isRefresh) setLoading(true);
+      setError(null);
+      const response = await getAllEvents();
+      const data = response.data;
+      setEvents(data);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      setError("Failed to load events. Pull to retry.");
+    } finally {
+      setLoading(false);
+      if (isRefresh) setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchEvents(true);
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const formatPrice = (price: number) => {
+    return price === 0 ? "FREE" : `₹${price}`;
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-[#E8DCC8]">
+        <StatusBar barStyle="dark-content" backgroundColor="#E8DCC8" />
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#2C1810" />
+          <Text className="mt-4 text-[#8B6F47] text-base">
+            Loading events...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-[#E8DCC8]">
@@ -78,7 +71,10 @@ export default function HomeScreen() {
 
       {/* Header */}
       <View className="px-6 pt-4 pb-5">
-        <Text className="text-[40px] font-extrabold text-[#2C1810] mb-1" style={{ letterSpacing: -1 }}>
+        <Text
+          className="text-[40px] font-extrabold text-[#2C1810] mb-1"
+          style={{ letterSpacing: -1 }}
+        >
           Discover
         </Text>
         <Text className="text-base text-[#8B6F47]">
@@ -90,15 +86,49 @@ export default function HomeScreen() {
         className="flex-1"
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#2C1810"
+            colors={["#2C1810"]}
+          />
+        }
       >
+        {/* Error State */}
+        {error && (
+          <View className="px-6 mb-6">
+            <View className="bg-red-100 border-2 border-red-400 rounded-2xl p-4">
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="warning" size={20} color="#DC2626" />
+                <Text className="ml-2 text-red-700 font-bold">Error</Text>
+              </View>
+              <Text className="text-red-600 text-sm">{error}</Text>
+            </View>
+          </View>
+        )}
 
+        {/* Empty State */}
+        {!error && events.length === 0 && (
+          <View className="flex-1 justify-center items-center px-6 py-20">
+            <View className="bg-[#F5EFE6] rounded-full p-8 mb-6 border-2 border-[#D4C4B0]">
+              <Ionicons name="calendar-outline" size={64} color="#8B6F47" />
+            </View>
+            <Text className="text-2xl font-bold text-[#2C1810] mb-2 text-center">
+              No Events Yet
+            </Text>
+            <Text className="text-[#8B6F47] text-center text-base">
+              Check back later for exciting events!
+            </Text>
+          </View>
+        )}
 
         {/* Events List */}
         <View className="px-6 gap-6">
           {events.map((event) => (
             <TouchableOpacity
-              key={event.id}
-              onPress={() => router.push(`/event/${event.id}`)}
+              key={event._id}
+              onPress={() => router.push(`/event/${event._id}`)}
               activeOpacity={0.95}
               className="bg-[#F5EFE6] rounded-[32px] overflow-hidden border-2 border-[#2C1810]"
               style={{
@@ -109,68 +139,82 @@ export default function HomeScreen() {
                 elevation: 8,
               }}
             >
-              {/* Image Container with Border */}
+              {/* Image Container with Price Badge */}
               <View className="p-4">
-                <View className="rounded-[24px] overflow-hidden border-2 border-[#2C1810]">
+                <View className="rounded-[24px] overflow-hidden border-2 border-[#2C1810] relative">
                   <Image
-                    source={{ uri: event.image }}
+                    source={{
+                      uri: event.image || "https://via.placeholder.com/400x300",
+                    }}
                     className="w-full h-56"
                     resizeMode="cover"
                   />
+                  {/* Price Badge */}
+                  <View className="absolute top-4 right-4">
+                    <View
+                      className={`${
+                        event.price === "0"
+                          ? "bg-green-500"
+                          : "bg-[#2C1810]"
+                      } px-4 py-2 rounded-full border-2 border-white`}
+                      style={{
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 4,
+                        elevation: 5,
+                      }}
+                    >
+                      <Text className="text-white font-black text-sm tracking-wider">
+                        {formatPrice(Number(event.price) )}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               </View>
 
               {/* Content */}
               <View className="px-6 pb-6">
                 {/* Title */}
-                <Text className="text-2xl font-bold text-[#2C1810] mb-3 text-center" style={{ fontFamily: 'serif' }}>
+                <Text
+                  className="text-2xl font-bold text-[#2C1810] mb-3 text-center"
+                  style={{ fontFamily: "serif" }}
+                  numberOfLines={2}
+                >
                   {event.title}
                 </Text>
 
-                {/* Meta Info */}
-                <View className="flex-row items-center justify-center mb-3 gap-2">
-                  <Text className="text-sm text-[#8B6F47] font-medium">{event.date.split(',')[1]}</Text>
-                  <View className="w-1 h-1 rounded-full bg-[#8B6F47]" />
-                  <Text className="text-sm text-[#8B6F47] font-medium">{event.category}</Text>
-                  <View className="w-1 h-1 rounded-full bg-[#8B6F47]" />
-                  <Text className="text-sm text-[#8B6F47] font-medium">{event.duration}</Text>
-                </View>
-
-                {/* Rating Stars */}
-                <View className="flex-row items-center justify-center mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Ionicons
-                      key={star}
-                      name={star <= Math.round(event.rating) ? "star" : "star-outline"}
-                      size={18}
-                      color="#C17B3C"
-                      style={{ marginHorizontal: 2 }}
-                    />
-                  ))}
-                </View>
-
-                {/* Description */}
-                <Text className="text-sm text-[#8B6F47] text-center leading-5 mb-5">
-                  {event.description}
-                </Text>
-
                 {/* Details */}
-                <View className="gap-2.5">
-                  <View className="flex-row items-center justify-center">
-                    <Ionicons name="calendar-outline" size={16} color="#8B6F47" />
-                    <Text className="ml-2 text-sm text-[#2C1810] font-medium">
-                      {event.date} at {event.time}
+                <View className="gap-2.5 bg-white/50 rounded-2xl p-4 mb-4">
+                  <View className="flex-row items-center">
+                    <View className="bg-[#F5EFE6] rounded-full p-2 mr-3 border border-[#D4C4B0]">
+                      <Ionicons name="calendar-outline" size={16} color="#8B6F47" />
+                    </View>
+                    <Text className="text-sm text-[#2C1810] font-medium flex-1">
+                      {new Date(event.date).toLocaleDateString("en-US", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}{" "}
+                      at {event.time}
                     </Text>
                   </View>
-                  <View className="flex-row items-center justify-center">
-                    <Ionicons name="location-outline" size={16} color="#8B6F47" />
-                    <Text className="ml-2 text-sm text-[#2C1810] font-medium">
+                  <View className="flex-row items-center">
+                    <View className="bg-[#F5EFE6] rounded-full p-2 mr-3 border border-[#D4C4B0]">
+                      <Ionicons name="location-outline" size={16} color="#8B6F47" />
+                    </View>
+                    <Text
+                      className="text-sm text-[#2C1810] font-medium flex-1"
+                      numberOfLines={1}
+                    >
                       {event.location}
                     </Text>
                   </View>
-                  <View className="flex-row items-center justify-center">
-                    <Ionicons name="people-outline" size={16} color="#8B6F47" />
-                    <Text className="ml-2 text-sm text-[#2C1810] font-medium">
+                  <View className="flex-row items-center">
+                    <View className="bg-[#F5EFE6] rounded-full p-2 mr-3 border border-[#D4C4B0]">
+                      <Ionicons name="people-outline" size={16} color="#8B6F47" />
+                    </View>
+                    <Text className="text-sm text-[#2C1810] font-medium flex-1">
                       {event.attendees}+ attendees
                     </Text>
                   </View>
@@ -178,7 +222,7 @@ export default function HomeScreen() {
 
                 {/* Buy Ticket Button */}
                 <TouchableOpacity
-                  className="bg-[#2C1810] rounded-full py-3.5 mt-5"
+                  className="bg-[#2C1810] rounded-full py-3.5 flex-row items-center justify-center"
                   style={{
                     shadowColor: "#2C1810",
                     shadowOffset: { width: 0, height: 4 },
@@ -186,9 +230,11 @@ export default function HomeScreen() {
                     shadowRadius: 8,
                     elevation: 6,
                   }}
+                  activeOpacity={0.8}
                 >
-                  <Text className="text-[#F5EFE6] text-center font-bold text-base tracking-wider">
-                    BUY TICKET
+                  <Ionicons name="ticket-outline" size={20} color="#F5EFE6" />
+                  <Text className="text-[#F5EFE6] font-bold text-base tracking-wider ml-2">
+                    {Number(event.price) === 0 ? "GET FREE TICKET" : `BUY FOR ${formatPrice(Number(event.price))}`}
                   </Text>
                 </TouchableOpacity>
               </View>

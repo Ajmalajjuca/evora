@@ -1,3 +1,4 @@
+// app/_layout.tsx
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "../global.css";
@@ -13,6 +14,7 @@ export default function RootLayout() {
           animation: "slide_from_right",
         }}
       >
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="event/[id]"

@@ -39,7 +39,7 @@ export class AuthService {
     const user = await userRepo.findByEmail(email);
     if (!user) throw new AppError("Invalid email", 401);
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await user.comparePassword(password);
 
     if (!isMatch) throw new AppError("Invalid email or password", 401);
 

@@ -1,8 +1,35 @@
-import { Tabs } from "expo-router";
+// app/(tabs)/_layout.tsx
+import { Tabs, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Platform } from "react-native";
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function TabsLayout() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const user = await AsyncStorage.getItem("user");
+      setIsAuthenticated(!!user);
+    } catch (error) {
+      setIsAuthenticated(false);
+    }
+  };
+
+  const handleProtectedTabPress = (routeName: string) => {
+    if (!isAuthenticated) {
+      router.push("/(auth)/login");
+      return false;
+    }
+    return true;
+  };
+
   return (
     <Tabs
       screenOptions={{
@@ -34,6 +61,20 @@ export default function TabsLayout() {
         },
         tabBarIconStyle: {
           marginTop: 0,
+        },
+      }}
+      screenListeners={{
+        tabPress: (e) => {
+          // Get the route name from the event
+          const routeName = e.target?.split('-')[0];
+
+          // Check if it's a protected tab
+          if (routeName === 'tickets' || routeName === 'saved' || routeName === 'profile') {
+            if (!isAuthenticated) {
+              e.preventDefault();
+              router.push("/(auth)/login");
+            }
+          }
         },
       }}
     >
@@ -68,25 +109,6 @@ export default function TabsLayout() {
             >
               <Ionicons
                 name={focused ? "ticket" : "ticket-outline"}
-                size={24}
-                color={focused ? "#F5EFE6" : color}
-              />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="saved"
-        options={{
-          title: "Saved",
-          tabBarIcon: ({ color, focused }) => (
-            <View
-              className={`w-12 h-12 rounded-full items-center justify-center ${
-                focused ? "bg-[#C17B3C]" : ""
-              }`}
-            >
-              <Ionicons
-                name={focused ? "heart" : "heart-outline"}
                 size={24}
                 color={focused ? "#F5EFE6" : color}
               />

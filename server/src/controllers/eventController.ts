@@ -67,3 +67,5 @@ export const deleteEvent = catchAsync(async (req: Request, res: Response, next: 
   if (!deleted) return ApiResponse.error(res, "Event not found", 404);
   return ApiResponse.success(res, null, "Event deleted successfully", 204);
 });
+
+

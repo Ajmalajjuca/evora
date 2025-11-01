@@ -11,7 +11,6 @@ interface AuthRequest extends Request {
 
 export const protect = catchAsync(async (req: AuthRequest, res: Response, next: NextFunction) => {
   let token: string | undefined;
-console.log("Authorization Header:", req.headers.authorization);
 
   if (req.headers.authorization?.startsWith("Bearer")) {
     token = req.headers.authorization.split(" ")[1].replace(/"/g, "");

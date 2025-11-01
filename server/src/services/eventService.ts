@@ -1,6 +1,8 @@
 import { EventRepository } from "../repositories/eventRepository.js";
 import { AppError } from "../utils/AppError.js";
 import { IEvent } from "../types/event.js";
+import { BookRepository } from "../repositories/bookRepository.js";
+import { IBooking } from "../types/book.js";
 
 const eventRepository = new EventRepository();
 
@@ -49,4 +51,6 @@ export class EventService {
     if (!deletedEvent) throw new AppError("Event not found", 404);
     return deletedEvent;
   }
+
+
 }
